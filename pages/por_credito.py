@@ -182,7 +182,8 @@ else:
             
             for campo, valor in campos:
                 save(cobranza['id'], campo, valor)
-            login.cargar_clientes()  
+            login.cargar_clientes() 
+            st.rerun()
 
 
 

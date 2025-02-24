@@ -253,7 +253,7 @@ def historial(old_values, new_values):
     # Agregar ambas filas a la hoja
     worksheet.append_row(row_old)
     worksheet.append_row(row_new)
-
+import meta_ediciones
 def cargar_clientes():
     if "clientes" not in st.session_state:
         st.session_state["clientes"] = load_data_vendedores(st.secrets['urls']['clientes'])
@@ -261,6 +261,7 @@ def cargar_clientes():
         st.session_state["cobranzas"] = load_data_vendedores(st.secrets['urls']['cobranzas'])
     if "prestamos" not in st.session_state:
         st.session_state["prestamos"] = load_data_vendedores(st.secrets['urls']['prestamos'])
+    meta_ediciones.calcular_recargo()
 
 def cargar_reportes():
     if "mov" not in st.session_state:

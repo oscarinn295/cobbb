@@ -1,51 +1,16 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 from datetime import datetime, date
-import login
-# Función para ordenar cobranzas
-# Función para ordenar cobranzas
-def ordenar_cobranzas(df):
-    # Convertimos la columna 'vencimiento' a formato datetime
-    df['vencimiento'] = pd.to_datetime(df['vencimiento'], format='%d-%m-%Y', errors='coerce')
-
-    # Definimos la fecha de hoy
-    hoy = pd.Timestamp(date.today())
-
-    # Creamos una clave de orden basada en las reglas definidas
-    condiciones = [
-        (df['vencimiento'] >= hoy),  # Fechas desde hoy en adelante
-        (df['vencimiento'] < hoy) & (df['estado'] == 'Pendiente de pago'),  # Anteriores a hoy y pendientes de pago
-        (df['estado'] == 'Pago parcial'),  # Pago parcial
-        (df['estado'] == 'En mora'),  # En mora
-        (df['estado'] == 'Pago total')  # Pago total
-    ]
-
-    valores_orden = [0, 2, 3, 4, 5]  # Cambio: Ponemos las fechas futuras con orden 0
-
-    df['orden_estado'] = 6  # Valor por defecto (para evitar problemas)
-
-    for condicion, valor in zip(condiciones, valores_orden):
-        df.loc[condicion, 'orden_estado'] = valor
-
-    # Ordenamos por orden_estado y fecha de vencimiento ascendente
-    df_sorted = df.sort_values(by=['orden_estado', 'vencimiento'], ascending=[True, True])
-
-    # Eliminamos la columna auxiliar de ordenamiento
-    df_sorted = df_sorted.drop(columns=['orden_estado'])
-    df_sorted['vencimiento'] = df_sorted['vencimiento'].dt.strftime('%d-%m-%Y')
-    
-    return df_sorted
-
-
-
-
-
-def load_data(url):
-    return pd.read_excel(url, engine='openpyxl')
-
 import datetime as dt
+import login
 
 def calcular_recargo(cobranza):
+    """
+    Recalcula el recargo de mora para una cobranza.
+    Si el estado es "Pago total" o "Pendiente de pago", se devuelve
+    los valores existentes; solo se recalcula para las cobranzas en "En mora".
+    """
     # Cargar datos de préstamos y cobranzas
     prestamos = login.load_data(st.secrets['urls']['prestamos'])
     cobranzas = login.load_data(st.secrets['urls']['cobranzas'])
@@ -61,30 +26,17 @@ def calcular_recargo(cobranza):
     hoy_date = dt.date.today()
 
     # Actualizar el estado:
-    # • Si el vencimiento es posterior a hoy, dejamos el estado como "Pendiente de pago" (sin modificar otros datos).
-    # • Si el vencimiento ya pasó Y el estado está como "Pendiente de pago", lo transformamos a "En mora".
-    # • Para "Pago total" se conservarán los valores que ya tenías.
+    # • Si el vencimiento es posterior a hoy, se marca como "Pendiente de pago".
+    # • Si ya pasó y aún está como "Pendiente de pago", se cambia a "En mora".
+    # • Para "Pago total" se conservan los valores.
     cobranzas.loc[cobranzas['vencimiento'].dt.date > hoy_date, 'estado'] = 'Pendiente de pago'
     cobranzas.loc[(cobranzas['vencimiento'].dt.date <= hoy_date) & (cobranzas['estado'] == 'Pendiente de pago'), 'estado'] = 'En mora'
 
-    # Convertir nuevamente 'vencimiento' a string para subirlo (si es necesario)
+    # Convertir nuevamente 'vencimiento' a string (para poder formatearlo o subirlo)
     cobranzas['vencimiento'] = cobranzas['vencimiento'].dt.strftime('%d-%m-%Y')
-    """
-    Para cada cobranza:
-      - Si el estado es "Pago total": se conservan los valores ya existentes.
-      - Si el estado es "Pendiente de pago": no se modifica (se asume que el vencimiento aún no pasó).
-      - Solo para las cobranzas en "En mora" se recalculan:
-            * Los días de mora (solo positivos).
-            * El interés acumulado, multiplicando la tasa diaria por los días de mora.
-            * El monto recalculado sumando el monto original + interés acumulado.
-    """
-    # No recalcular si está en "Pago total"
-    if cobranza['estado'] == 'Pago total':
-        return pd.Series([cobranza['dias_mora'], cobranza['mora'], cobranza['monto_recalculado_mora']],
-                         index=['dias_mora', 'mora', 'monto_recalculado_mora'])
-    
-    # Para las cobranzas que siguen en "Pendiente de pago", no se modifica nada.
-    if cobranza['estado'] == 'Pendiente de pago':
+
+    # Si el estado es "Pago total" o "Pendiente de pago", se conservan los valores existentes.
+    if cobranza['estado'] in ['Pago total', 'Pendiente de pago']:
         return pd.Series([cobranza['dias_mora'], cobranza['mora'], cobranza['monto_recalculado_mora']],
                          index=['dias_mora', 'mora', 'monto_recalculado_mora'])
     
@@ -125,57 +77,85 @@ def calcular_recargo(cobranza):
     hoy_ts = pd.Timestamp(date.today())
     dias_mora = (hoy_ts - cobranza_vencimiento).days
 
-    # Si el número de días de mora es menor o igual a 0 (lo que indicaría que no está vencida)
-    # se mantienen los valores originales
+    # Si el número de días de mora es menor o igual a 0 se mantienen los valores originales
     if dias_mora <= 0:
         return pd.Series([cobranza['dias_mora'], cobranza['mora'], cobranza['monto_recalculado_mora']],
                          index=['dias_mora', 'mora', 'monto_recalculado_mora'])
     
-    # Obtener el tipo de préstamo y la tasa (se asume que el valor en la columna es idéntico a las claves del diccionario)
+    # Obtener el tipo de préstamo y la tasa (las claves deben coincidir con los valores de la columna 'vence')
     tipo = prestamo['vence'].iloc[0]
-    interes = tipo_prestamo.get(tipo)
+    interes = tipo_prestamo.get(tipo, 0)  # Si no se encuentra, se asume 0
 
     interes_por_mora = interes * dias_mora
     monto_recalculado = monto + interes_por_mora
 
     return pd.Series([dias_mora, interes_por_mora, monto_recalculado],
                      index=['dias_mora', 'mora', 'monto_recalculado_mora'])
-#hoy_date = dt.date.today()
-#if st.button('calcular recargos por mora'):
-#    # Recargar datos (en caso de que hayan cambiado)
-#    cobb = login.load_data(st.secrets['urls']['cobranzas'])
-    
-    # Asegurar que el campo de ID se trate como cadena y convertir la fecha de vencimiento
-#    cobb['prestamo_id'] = cobb['prestamo_id'].astype(str)
-#    cobb['vencimiento'] = pd.to_datetime(cobb['vencimiento'], format='%d-%m-%Y', errors='coerce')
-    
+
+
+def recalcular_y_guardar_recargos():
+    """
+    Esta función:
+      1. Carga los datos de cobranzas y préstamos.
+      2. Actualiza el estado de las cobranzas según la fecha de vencimiento.
+      3. Aplica el cálculo de recargo de mora para cada cobranza.
+      4. Reordena y formatea las columnas según se requiera.
+      5. Sobrescribe la hoja de cobranzas con los cambios realizados.
+    """
+    # Cargar datos
+    prestamos = login.load_data(st.secrets['urls']['prestamos'])
+    cobranzas = login.load_data(st.secrets['urls']['cobranzas'])
+
+    # Aseguramos que los IDs sean del mismo tipo (cadena)
+    prestamos['id'] = prestamos['id'].astype(str)
+    cobranzas['prestamo_id'] = cobranzas['prestamo_id'].astype(str)
+
+    # Convertir la columna 'vencimiento' a datetime
+    cobranzas['vencimiento'] = pd.to_datetime(cobranzas['vencimiento'], format='%d-%m-%Y', errors='coerce')
+    hoy_date = dt.date.today()
+
     # Actualizar el estado de las cobranzas:
-    # • Si el vencimiento es en el futuro, dejar "Pendiente de pago"
-    # • Si ya pasó y aún está en "Pendiente de pago", cambiar a "En mora"
-#    cobb.loc[cobb['vencimiento'].dt.date > hoy_date, 'estado'] = 'Pendiente de pago'
-#    cobb.loc[(cobb['vencimiento'].dt.date <= hoy_date) & (cobb['estado'] == 'Pendiente de pago'), 'estado'] = 'En mora'
+    # - Si el vencimiento es posterior a hoy, se marca como "Pendiente de pago".
+    # - Si ya pasó y estaba en "Pendiente de pago", se cambia a "En mora".
+    cobranzas.loc[cobranzas['vencimiento'].dt.date > hoy_date, 'estado'] = 'Pendiente de pago'
+    cobranzas.loc[(cobranzas['vencimiento'].dt.date <= hoy_date) & (cobranzas['estado'] == 'Pendiente de pago'), 'estado'] = 'En mora'
+
+    # Convertir 'vencimiento' a string para que el formato sea consistente al subir los datos
+    cobranzas['vencimiento'] = cobranzas['vencimiento'].dt.strftime('%d-%m-%Y')
+
+    # Aplicar la función de cálculo a cada fila para actualizar los recargos
+    cobranzas[['dias_mora', 'mora', 'monto_recalculado_mora']] = cobranzas.apply(calcular_recargo, axis=1)
+
+    # Opcional: Reordenar las columnas según el formato requerido.
+    # Ajusta 'column_order' según las columnas que realmente tengas en el DataFrame.
+    column_order = ['id', 'prestamo_id', 'entregado', 'tnm', 'cantidad de cuotas',
+                    'vendedor', 'nombre', 'n_cuota', 'monto', 'vencimiento', 
+                    'dias_mora', 'mora', 'capital', 'cuota pura', 'intereses',
+                    'amortizacion', 'iva', 'monto_recalculado_mora', 'pago', 'estado', 
+                    'medio de pago', 'cobrador', 'fecha_cobro']
+    cols_present = [col for col in column_order if col in cobranzas.columns]
+    cobranzas = cobranzas[cols_present]
+
+    # Reemplazar valores NaN y nulos por cadena vacía para evitar errores en la carga
+    cobranzas = cobranzas.fillna("")
+
+    # Si existe la columna 'fecha_cobro', formatearla a cadena (si es que es de tipo fecha)
+    if 'fecha_cobro' in cobranzas.columns:
+        cobranzas['fecha_cobro'] = pd.to_datetime(cobranzas['fecha_cobro'], errors='coerce')
+        cobranzas['fecha_cobro'] = cobranzas['fecha_cobro'].dt.strftime('%d-%m-%Y').fillna("")
+
+    # Preparar los datos para sobrescribir la hoja:
+    # La primera fila contiene los encabezados, seguido de los registros
+    data_to_upload = [cobranzas.columns.tolist()] + cobranzas.astype(str).values.tolist()
+
+    # Obtener el ID de la hoja de cobranzas
+    sheet_id = st.secrets['ids']['cobranzas']
+    # Sobrescribir la hoja con los datos actualizados
+    login.overwrite_sheet(data_to_upload, sheet_id)
     
-    # Aplicar la función de recálculo solo a aquellas cobranzas que estén en "En mora"
-#    cobb[['dias_mora', 'mora', 'monto_recalculado_mora']] = cobb.apply(meta_ediciones.calcular_recargo, axis=1)
-    
-    # Ordenar las columnas según tu formato requerido
-#    column_order = ['id', 'prestamo_id', 'entregado', 'tnm', 'cantidad de cuotas',
-#                    "vendedor", "nombre", "n_cuota", "monto", "vencimiento", 
-#                    "dias_mora", "mora", 'capital', 'cuota pura', 'intereses',
-#                    'amortizacion', 'iva', 'monto_recalculado_mora', 'pago', 'estado', 
-#                    'medio de pago', 'cobrador', 'fecha_cobro']
-#    cobb = cobb[column_order]
-    
-    # Reemplazar NaN y valores nulos
-#    cobb = cobb.replace({np.nan: "", pd.NaT: ""})
-#    cobb['vencimiento'] = pd.to_datetime(cobb['vencimiento'], errors='coerce').dt.strftime('%d-%m-%Y')
-    
-#    cobb['fecha_cobro'] = pd.to_datetime(cobb['fecha_cobro'], errors='coerce')
-#    cobb['fecha_cobro'] = cobb['fecha_cobro'].dt.strftime('%d-%m-%Y').fillna("")
-#    cobb['fecha_cobro'] = cobb['fecha_cobro'].replace("NaT", "")
-    
-#    data_to_upload = [cobb.columns.tolist()] + cobb.astype(str).values.tolist()
-#    sheet_id = st.secrets['ids']['cobranzas']
-#    login.overwrite_sheet(data_to_upload, sheet_id)
+    st.success("Recargos recalculados y cambios guardados correctamente.")
 
 
+# Ejemplo de uso:
+if st.button('Calcular recargos por mora'):
+    recalcular_y_guardar_recargos()

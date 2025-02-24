@@ -12,7 +12,7 @@ login.generarLogin()
 #todos los morosos
 
 st.title('Reporte general')
-
+login.cargar_clientes()
 
 prestamos=st.session_state['prestamos']
 prestamos=prestamos[prestamos['estado']=='liquidado']
@@ -28,48 +28,45 @@ morosos=clientes[clientes['nombre'].isin(cartones_morosos['nombre'].unique())]
 
 
 import pandas as pd
-cobranzas['vencimiento'] = pd.to_datetime(cobranzas['vencimiento'], format='%d-%m-%Y')
-cobranzas_2025=cobranzas[cobranzas['vencimiento'].dt.year>2025]
-prestamos['fecha'] = pd.to_datetime(prestamos['fecha'], format='%d-%m-%Y')
-prestamos_2025=prestamos[prestamos['fecha'].dt.year>2025]
-cobranzas_2025['amortizacion']=cobranzas_2025['amortizacion'].astype(float)
-generado=cobranzas_2025['pago'].sum()-cobranzas_2025['amortizacion'].sum()
+try:
+    cobranzas['vencimiento'] = pd.to_datetime(cobranzas['vencimiento'], format='%d-%m-%Y')
+    cobranzas_2025=cobranzas[cobranzas['vencimiento'].dt.year>2025]
+    prestamos['fecha'] = pd.to_datetime(prestamos['fecha'], format='%d-%m-%Y')
+    prestamos_2025=prestamos[prestamos['fecha'].dt.year>2025]
+    cobranzas_2025['amortizacion']=cobranzas_2025['amortizacion'].astype(float)
+    generado=cobranzas_2025['pago'].sum()-cobranzas_2025['amortizacion'].sum()
+    vendedores=st.session_state['usuarios']['usuario'].tolist()
+
+    col1,col2=st.columns(2)
+    with col1:
+        st.write(f"Prestamos vigentes: {prestamos_vigentes}\n",unsafe_allow_html=True)
+        st.write(f"Cantidad de clientes atrasados: {morosos.shape[0]}")
+    with col2:
+        st.write(f"Balance en 2025:{generado} \n",unsafe_allow_html=True)
+        st.write('calculo: pagos-amortizaciones')
+
+    cant_clientes=[clientes[clientes['vendedor']==vendedor].shape[0] for vendedor in vendedores]
+
+    df_clientes_vendedor=pd.DataFrame({
+        'vendedor':vendedores,
+        'cantidad de clientes':cant_clientes
+    })
 
 
-vendedores=st.session_state['usuarios']['usuario'].tolist()
+    cant_prestamos=[prestamos[prestamos['vendedor']==vendedor].shape[0] for vendedor in vendedores]
+
+    df_prestamos_vendedor=pd.DataFrame({
+        'vendedor':vendedores,
+        'cantidad de prestamos':cant_prestamos
+    })
 
 
-col1,col2=st.columns(2)
-with col1:
-    st.write(f"Prestamos vigentes: {prestamos_vigentes}\n",unsafe_allow_html=True)
-    st.write(f"Cantidad de clientes atrasados: {morosos.shape[0]}")
-with col2:
-    st.write(f"Balance en 2025:{generado} \n",unsafe_allow_html=True)
-    st.write('calculo: pagos-amortizaciones')
-
-
-
-cant_clientes=[clientes[clientes['vendedor']==vendedor].shape[0] for vendedor in vendedores]
-
-df_clientes_vendedor=pd.DataFrame({
-    'vendedor':vendedores,
-    'cantidad de clientes':cant_clientes
-})
-
-
-cant_prestamos=[prestamos[prestamos['vendedor']==vendedor].shape[0] for vendedor in vendedores]
-
-df_prestamos_vendedor=pd.DataFrame({
-    'vendedor':vendedores,
-    'cantidad de prestamos':cant_prestamos
-})
-
-
-moras=cobranzas[cobranzas['estado']=='En mora']
-cartones_morosos=prestamos[prestamos['id'].isin(moras['prestamo_id'].unique())]
-morosos=clientes[clientes['nombre'].isin(cartones_morosos['nombre'].unique())]
-cant_morosos=[morosos[morosos['vendedor']==vendedor].shape[0] for vendedor in vendedores]
-
+    moras=cobranzas[cobranzas['estado']=='En mora']
+    cartones_morosos=prestamos[prestamos['id'].isin(moras['prestamo_id'].unique())]
+    morosos=clientes[clientes['nombre'].isin(cartones_morosos['nombre'].unique())]
+    cant_morosos=[morosos[morosos['vendedor']==vendedor].shape[0] for vendedor in vendedores]
+except:
+    pass
 df_morosos_vendedor=pd.DataFrame({
     'vendedor':vendedores,
     'cantidad de morosos':cant_morosos
