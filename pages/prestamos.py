@@ -420,8 +420,7 @@ def display_table():
                     # Agregar cambios si el estado cambió
                     if new_estado != row["estado"]:
                         save(row['id'],'estado',new_estado)
-                        st.session_state['prestamos']=load()
-                        st.rerun()
+                        login.cargar_clientes()
                     if st.button("ver detalles",key=f'cliente_{idx}'):
                                 st.session_state['credito']=row
                                 st.switch_page("pages/por_credito.py")
