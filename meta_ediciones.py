@@ -154,8 +154,3 @@ def recalcular_y_guardar_recargos():
     login.overwrite_sheet(data_to_upload, sheet_id)
     
     st.success("Recargos recalculados y cambios guardados correctamente.")
-
-
-# Ejemplo de uso:
-if st.button('Calcular recargos por mora'):
-    recalcular_y_guardar_recargos()
