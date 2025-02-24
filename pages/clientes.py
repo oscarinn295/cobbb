@@ -263,5 +263,4 @@ with st.container(border=True):
     display_table(search_query)
     with st.expander('Ver todos los datos'):
         st.dataframe(st.session_state["clientes"])
-
-
+        

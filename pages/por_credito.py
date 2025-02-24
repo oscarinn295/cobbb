@@ -285,5 +285,5 @@ else:
 
 ###----------------------------------------------------###
     display_table()
-    with st.expander('ver pagados'):
-        st.dataframe(credito[(credito['estado']=='Pago total') or (credito['estado']=='Pago parcial')])
+    #with st.expander('ver pagados'):
+    #    st.dataframe(credito[(credito['estado']=='Pago total') or (credito['estado']=='Pago parcial')])
