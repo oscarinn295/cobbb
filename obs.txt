@@ -1,0 +1,24 @@
+comisiones:
+    las comisiones de cada mes se pagan del 15 al 25 del mes siguiente
+    entonces contamos los movimientos por empleado desde el primero hasta el ultimo dia del mes, pero la operación automatica la hacce el primer dia del mes siguiente
+    añadir sitema de comisiones compartidas
+    se comisiona por venta y por cobranzas
+    las comisiones por ventas no tienen piso
+
+quieren ver cuanto juntaron de amortización e intereses por mes
+tambien quiere una planilla de gastos
+
+
+fijarse con lo de registrar las cobranzas, dejar un saldo a favor si se paga de mas y transferirlo, 
+
+añadir el estado de irregular a las cobranzas y desarrollar un nuevo sistema para morosos
+
+hacer automatico el recargo por mora
+
+poder modificar a mano los vencimientos de todas las cobranzas
+y poder modificar desde cuando se quiere empezar a cobrar
+
+recordar que la función de save tiene un problema con los indexes,
+que hay una que busca de acuerdo a la coincidencia en la columna id,
+y en otros casos busca en el orden de aparicion en la hoja
+
