@@ -261,7 +261,7 @@ def cargar_clientes():
         st.session_state["cobranzas"] = load_data_vendedores(st.secrets['urls']['cobranzas'])
     if "prestamos" not in st.session_state:
         st.session_state["prestamos"] = load_data_vendedores(st.secrets['urls']['prestamos'])
-    meta_ediciones.calcular_recargo()
+    #meta_ediciones.calcular_recargo()
 
 def cargar_reportes():
     if "mov" not in st.session_state:
