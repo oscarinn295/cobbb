@@ -131,7 +131,7 @@ else:
                 with col1:
                     st.write('Filtros adicionales: ')
                 with col2:
-                    check1= st.checkbox('En mora',key=f'check1 ')
+                    check1= st.checkbox('En mora')
                 with col3:
                     check2=st.checkbox('Pendientes de pago')
                 if check1 and check2:
