@@ -4,7 +4,6 @@ import pandas as pd
 import datetime as dt
 import time
 login.generarLogin()
-st.title(f"{st.session_state['cliente']['nombre']}")
 col1,col2,col3,col4,col5=st.columns(5)
 with col1:
     if st.button("Volver"):
@@ -21,6 +20,7 @@ if 'usuario' not in st.session_state:
 if 'cliente' not in st.session_state :
     st.error("No se ha seleccionado ningún cliente.")
 else:
+    st.title(f"{st.session_state['cliente']['nombre']}")
     cliente = st.session_state['cliente']
     vendedores = st.session_state['usuarios']['usuario'].tolist()
 
@@ -132,7 +132,7 @@ else:
                     estado=st.selectbox('Modificar estado',
                                 ["Seleccione una opción", "pendiente", "aceptado", "liquidado", 
                                 "al dia", "En mora", "en juicio", "cancelado", "finalizado"],key=f'estado{idx}')
-                    if st.button('Guardar'):
+                    if st.button('Guardar',key=f'guardar_{idx}'):
                         login.save_data(st.session_state['credito']['id'],'estado',estado)
 
                 with col5:
