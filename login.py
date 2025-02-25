@@ -444,19 +444,6 @@ def display_cobranzas(cobranzas_df):
         df=cobranzas_df
         # Crear una copia del DataFrame original  
         with st.container(border=True): 
-            col1,col2,col3,col4,col5=st.columns(5)
-            with col1:
-                st.write('Filtros adicionales: ')
-            with col2:
-                check1= st.checkbox('En mora')
-            with col3:
-                check2=st.checkbox('Pendientes de pago')
-            if check1 and check2:
-                df=df[df['estado']=='En mora' or df['estado']=='Pendientes de pago' ]
-            elif check1:
-                df=df[df['estado']=='En mora']
-            elif check2:
-                df=df[df['estado']=='Pendientes de pago']
             if not df.empty:
                 for idx, row in df.iterrows():
                     with st.container(border=True):
