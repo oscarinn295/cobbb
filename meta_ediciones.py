@@ -5,95 +5,97 @@ from datetime import datetime, date
 import datetime as dt
 import login
 
-def calcular_recargo(cobranza):
-    """
-    Recalcula el recargo de mora para una cobranza.
-    Si el estado es "Pago total" o "Pendiente de pago", se devuelve
-    los valores existentes; solo se recalcula para las cobranzas en "En mora".
-    """
-    # Cargar datos de préstamos y cobranzas
-    prestamos = login.load_data(st.secrets['urls']['prestamos'])
-    cobranzas = login.load_data(st.secrets['urls']['cobranzas'])
-
-    # Aseguramos que los IDs sean del mismo tipo (cadena)
-    prestamos['id'] = prestamos['id'].astype(str)
-    cobranzas['prestamo_id'] = cobranzas['prestamo_id'].astype(str)
-
-    # Convertir la columna 'vencimiento' a datetime para trabajar con fechas
-    cobranzas['vencimiento'] = pd.to_datetime(cobranzas['vencimiento'], format='%d-%m-%Y', errors='coerce')
-
-    # Definir la fecha de hoy
-    hoy_date = dt.date.today()
-
-    # Actualizar el estado:
-    # • Si el vencimiento es posterior a hoy, se marca como "Pendiente de pago".
-    # • Si ya pasó y aún está como "Pendiente de pago", se cambia a "En mora".
-    # • Para "Pago total" se conservan los valores.
-    cobranzas.loc[cobranzas['vencimiento'].dt.date > hoy_date, 'estado'] = 'Pendiente de pago'
-    cobranzas.loc[(cobranzas['vencimiento'].dt.date <= hoy_date) & (cobranzas['estado'] == 'Pendiente de pago'), 'estado'] = 'En mora'
-
-    # Convertir nuevamente 'vencimiento' a string (para poder formatearlo o subirlo)
-    cobranzas['vencimiento'] = cobranzas['vencimiento'].dt.strftime('%d-%m-%Y')
-
-    # Si el estado es "Pago total" o "Pendiente de pago", se conservan los valores existentes.
-    if cobranza['estado'] in ['Pago total', 'Pendiente de pago']:
-        return pd.Series([cobranza['dias_mora'], cobranza['mora'], cobranza['monto_recalculado_mora']],
-                         index=['dias_mora', 'mora', 'monto_recalculado_mora'])
-    
-    # Convertir monto a float (si no puede, se usa 0)
-    try:
-        monto = float(cobranza['monto'])
-    except:
-        monto = 0.0
-
-    # Buscar el préstamo correspondiente
-    prestamo = prestamos[prestamos['id'] == cobranza['prestamo_id']]
-    if pd.isna(cobranza['prestamo_id']) or prestamo.empty:
-        # Si no se encontró, se mantienen los valores existentes
-        return pd.Series([cobranza['dias_mora'], cobranza['mora'], cobranza['monto_recalculado_mora']],
-                         index=['dias_mora', 'mora', 'monto_recalculado_mora'])
-
-    # Diccionario con tasas de interés diarias
-    tipo_prestamo = {
-        'Mensual: 1-10': 500,
-        'Mensual: 10-20': 500,
-        'Mensual: 20-30': 500,
-        'Quincenal': 400,
-        'Semanal: lunes': 300,
-        'Semanal: martes': 300,
-        'Semanal: miercoles': 300,
-        'Semanal: jueves': 300,
-        'Semanal: viernes': 300,
-        'Semanal: sabado': 300,
-        'indef': 0
-    }
-    
-    # Convertir la fecha de vencimiento de la cobranza a datetime
-    cobranza_vencimiento = pd.to_datetime(cobranza['vencimiento'], format='%d-%m-%Y', errors='coerce')
-    if pd.isna(cobranza_vencimiento):
-        return pd.Series([cobranza['dias_mora'], cobranza['mora'], cobranza['monto_recalculado_mora']],
-                         index=['dias_mora', 'mora', 'monto_recalculado_mora'])
-    
-    hoy_ts = pd.Timestamp(date.today())
-    dias_mora = (hoy_ts - cobranza_vencimiento).days
-
-    # Si el número de días de mora es menor o igual a 0 se mantienen los valores originales
-    if dias_mora <= 0:
-        return pd.Series([cobranza['dias_mora'], cobranza['mora'], cobranza['monto_recalculado_mora']],
-                         index=['dias_mora', 'mora', 'monto_recalculado_mora'])
-    
-    # Obtener el tipo de préstamo y la tasa (las claves deben coincidir con los valores de la columna 'vence')
-    tipo = prestamo['vence'].iloc[0]
-    interes = tipo_prestamo.get(tipo, 0)  # Si no se encuentra, se asume 0
-
-    interes_por_mora = interes * dias_mora
-    monto_recalculado = monto + interes_por_mora
-
-    return pd.Series([dias_mora, interes_por_mora, monto_recalculado],
-                     index=['dias_mora', 'mora', 'monto_recalculado_mora'])
-
 
 def recalcular_y_guardar_recargos():
+
+    def calcular_recargo(cobranza):
+        login.cargar_clientes()
+        """
+        Recalcula el recargo de mora para una cobranza.
+        Si el estado es "Pago total" o "Pendiente de pago", se devuelve
+        los valores existentes; solo se recalcula para las cobranzas en "En mora".
+        """
+        # Cargar datos de préstamos y cobranzas
+        prestamos = st.session_state['prestamos']
+        cobranzas = st.session_state['cobranzas']
+
+        # Convertir la columna 'vencimiento' a datetime para trabajar con fechas
+        try:
+            cobranzas['vencimiento'] = pd.to_datetime(cobranzas['vencimiento'], format='%d-%m-%Y', errors='coerce')
+        except:
+            return 
+        # Definir la fecha de hoy
+        hoy_date = dt.date.today()
+
+        # Actualizar el estado:
+        # • Si el vencimiento es posterior a hoy, se marca como "Pendiente de pago".
+        # • Si ya pasó y aún está como "Pendiente de pago", se cambia a "En mora".
+        # • Para "Pago total" se conservan los valores.
+        cobranzas.loc[cobranzas['vencimiento'].dt.date > hoy_date, 'estado'] = 'Pendiente de pago'
+        cobranzas.loc[(cobranzas['vencimiento'].dt.date <= hoy_date) & (cobranzas['estado'] == 'Pendiente de pago'), 'estado'] = 'En mora'
+
+        # Convertir nuevamente 'vencimiento' a string (para poder formatearlo o subirlo)
+        try:
+            cobranzas['vencimiento'] = cobranzas['vencimiento'].dt.strftime('%d-%m-%Y')
+        except:
+            pass
+        # Si el estado es "Pago total" o "Pendiente de pago", se conservan los valores existentes.
+        if cobranza['estado'] in ['Pago total', 'Pendiente de pago']:
+            return pd.Series([cobranza['dias_mora'], cobranza['mora'], cobranza['monto_recalculado_mora']],
+                            index=['dias_mora', 'mora', 'monto_recalculado_mora'])
+        
+        # Convertir monto a float (si no puede, se usa 0)
+        try:
+            monto = float(cobranza['monto'])
+        except:
+            pass
+
+        # Buscar el préstamo correspondiente
+        prestamo = prestamos[prestamos['id'] == cobranza['prestamo_id']]
+        if pd.isna(cobranza['prestamo_id']) or prestamo.empty:
+            # Si no se encontró, se mantienen los valores existentes
+            return pd.Series([cobranza['dias_mora'], cobranza['mora'], cobranza['monto_recalculado_mora']],
+                            index=['dias_mora', 'mora', 'monto_recalculado_mora'])
+
+        # Diccionario con tasas de interés diarias
+        tipo_prestamo = {
+            'Mensual: 1-10': 500,
+            'Mensual: 10-20': 500,
+            'Mensual: 20-30': 500,
+            'Quincenal': 400,
+            'Semanal: lunes': 300,
+            'Semanal: martes': 300,
+            'Semanal: miercoles': 300,
+            'Semanal: jueves': 300,
+            'Semanal: viernes': 300,
+            'Semanal: sabado': 300,
+            'indef': 0
+        }
+        
+        cobranza_vencimiento = cobranza['vencimiento']
+        if pd.isna(cobranza_vencimiento):
+            return pd.Series([cobranza['dias_mora'], cobranza['mora'], cobranza['monto_recalculado_mora']],
+                            index=['dias_mora', 'mora', 'monto_recalculado_mora'])
+        
+        hoy_ts = pd.Timestamp(date.today())
+        dias_mora = (hoy_ts - cobranza_vencimiento).days
+
+        # Si el número de días de mora es menor o igual a 0 se mantienen los valores originales
+        if dias_mora <= 0:
+            return pd.Series([cobranza['dias_mora'], cobranza['mora'], cobranza['monto_recalculado_mora']],
+                            index=['dias_mora', 'mora', 'monto_recalculado_mora'])
+        
+        # Obtener el tipo de préstamo y la tasa (las claves deben coincidir con los valores de la columna 'vence')
+        tipo = prestamo['vence'].iloc[0]
+        interes = tipo_prestamo.get(tipo, 0)  # Si no se encuentra, se asume 0
+
+        interes_por_mora = interes * dias_mora
+        monto_recalculado = monto + interes_por_mora
+
+        return pd.Series([dias_mora, interes_por_mora, monto_recalculado],
+                        index=['dias_mora', 'mora', 'monto_recalculado_mora'])
+    
+    
     """
     Esta función:
       1. Carga los datos de cobranzas y préstamos.

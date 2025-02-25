@@ -163,12 +163,26 @@ def crear():
             st.success('Cliente guardado correctamente')
             login.historial(['id','nombre','vendedor', 'scoring', 'direccion', 'fecha_nac', 'dni', 'celular', 'mail'],nuevo_cliente)
 
-def display_table(search_query=""):
-    st.subheader("Lista de Clientes")
+def display_table():
     df=st.session_state['clientes']
-    
-    if search_query:
-        df =df[df['nombre'].str.contains(search_query, case=False, na=False)]
+    lista=['seleccione un cliente']
+    for nombre in st.session_state['clientes']:
+        lista.append(nombre)
+    nombre_cliente = st.selectbox('Cliente',lista,index=0)
+    if nombre_cliente!='seleccione un cliente':
+        st.session_state["prestamos_df"]=df[df['nombre']==nombre_cliente]
+        df=st.session_state["prestamos_df"]
+    if st.session_state['user_data']['permisos'].iloc[0]=='admin':
+        lista2=['seleccione un vendedor']
+
+        for nombre in vendedores:
+            lista2.append(nombre)
+
+        vendedor=st.selectbox('vendedor',lista2,index=0)
+        
+        if vendedor!='seleccione un vendedor':
+            st.session_state["prestamos_df"]=df[df['vendedor']==vendedor]
+            df=st.session_state["prestamos_df"]
     # Configuración de paginación
     ITEMS_POR_PAGINA = 10
     # Paginación
@@ -251,10 +265,7 @@ with col2:
     if st.button('ver morosos'):
         st.switch_page('pages/morosos.py')
 with st.container(border=True):
-    col1,col2=st.columns(2)
-    with col2:
-        search_query = st.text_input("Buscar cliente", key="search_query")
-    display_table(search_query)
+    display_table()
     with st.expander('Ver todos los datos'):
         st.dataframe(st.session_state["clientes"])
 
