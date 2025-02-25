@@ -8,8 +8,6 @@ comisiones:
 quieren ver cuanto juntaron de amortización e intereses por mes
 tambien quiere una planilla de gastos
 
-
-
 hacer automatico el recargo por mora
 
 poder modificar a mano los vencimientos de todas las cobranzas

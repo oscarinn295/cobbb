@@ -5,10 +5,17 @@ import datetime as dt
 import time
 login.generarLogin()
 login.cargar_clientes()
-if st.button("Volver"):
-    st.session_state['credito'] = None
-    st.switch_page("pages/clientes.py")
-    
+col1,col2,col3,col4,col5=st.columns(5)
+with col1:
+    if st.button("Volver"):
+        if st.session_state['clientes']==None:
+            st.session_state['credito'] = None
+            st.switch_page("pages/clientes.py")
+        else:
+            st.switch_page("pages/por_cliente.py")
+with col5:
+    if st.button("Reiniciar datos"):
+        login.cargar_clientes(forzado=True)
 # Verificar si 'cliente' está en session_state
 if 'credito' not in st.session_state:
     st.switch_page('inicio.py')
@@ -49,7 +56,7 @@ else:
         with col4:
             st.write(f"📝 **Estado:** {credito['estado']}")
         with col5:
-            estado=st.checkbox('Modificar estado',
+            estado=st.selectbox('Modificar estado',
                         ["Seleccione una opción", "pendiente", "aceptado", "liquidado", 
                         "al dia", "En mora", "en juicio", "cancelado", "finalizado"])
             if st.button('Guardar'):

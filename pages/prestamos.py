@@ -463,6 +463,8 @@ with col2:
         with st.popover("Crear Préstamo",use_container_width=False,icon=f'💲'):
             crear()
         st.page_link('pages/simulador_creditos.py',label='Simulador de creditos', icon=":material/sell:")
+if st.button("Reiniciar datos"):
+        login.cargar_clientes(forzado=True)
 with st.container(border=True):
     display_table()
 with st.expander('Ver todos los datos'):

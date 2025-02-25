@@ -4,12 +4,19 @@ import pandas as pd
 import datetime as dt
 import time
 login.generarLogin()
+st.title(f"{st.session_state['cliente']['nombre']}")
+col1,col2,col3,col4,col5=st.columns(5)
+with col1:
+    if st.button("Volver"):
+        st.session_state['cliente'] = None
+        st.switch_page("pages/clientes.py")
+with col5:
+    if st.button("Reiniciar datos"):
+            login.cargar_clientes(forzado=True)
 if 'usuario' not in st.session_state:
     st.switch_page('inicio.py')
     
-if st.button("Volver"):
-    st.session_state['cliente'] = None
-    st.switch_page("pages/clientes.py")
+
 # Verificar si 'cliente' está en session_state
 if 'cliente' not in st.session_state :
     st.error("No se ha seleccionado ningún cliente.")
@@ -109,21 +116,30 @@ else:
                 login.cargar_clientes(forzado=True)
         for idx, row in prestamos_cliente.iterrows():
             with st.container(border=True):
-                col1,col2,col3,col4=st.columns(4)
+                col1,col2,col3,col4,col5=st.columns(5)
                 with col1: 
                     st.markdown(f"### Préstamo ID: {row['id']}")
                     st.write(f"📝 **Concepto:** {row['asociado']}")
+                    st.write(f"📆 **Vencimiento:** {row['vence']}")
                 with col2:
                     st.write(f"📅 **Fecha:** {row['fecha']}")
                     st.write(f"💰 **Capital:** {row['capital']}")
                 with col3:
                     st.write(f"📌 **Cantidad de cuotas:** {row['cantidad']}")
-                    st.write(f"📆 **Vencimiento:** {row['vence']}")
+                    st.write(f"💰 **Monto por cuota:** ${row['monto']:,.2f}")
                 with col4:
                     st.write(f"📝 **Estado:** {row['estado']}")
+                    estado=st.selectbox('Modificar estado',
+                                ["Seleccione una opción", "pendiente", "aceptado", "liquidado", 
+                                "al dia", "En mora", "en juicio", "cancelado", "finalizado"])
+                    if st.button('Guardar'):
+                        login.save_data(st.session_state['credito']['id'],'estado',estado)
+                        
+                with col5:
                     if st.button('ver detalles',key=f'detalles_{row['id']}'):
                         st.session_state['credito']=row
                         st.switch_page('pages/por_credito.py')
+                    
                 # Filtrar cobranzas relacionadas con este préstamo
                 cobranzas_prestamo = cobranzas_cliente[cobranzas_cliente['prestamo_id'] == row['id']]
                 df=cobranzas_prestamo
