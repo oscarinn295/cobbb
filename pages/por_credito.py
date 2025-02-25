@@ -34,7 +34,7 @@ else:
     primer = primer.strftime('%d-%m-%Y') if pd.notna(primer) else ""
     ultima = ultima.strftime('%d-%m-%Y') if pd.notna(ultima) else ""
     with st.container(border=True):
-        col1,col2,col3,col4=st.columns(4)
+        col1,col2,col3,col4,col5=st.columns(5)
         with col1: 
             st.markdown(f"### Préstamo ID: {credito['id']}")
             st.write(f"📝 **Concepto:** {credito['asociado']}")
@@ -46,6 +46,14 @@ else:
             st.write(f"📆 **Vencimiento:** {credito['vence']}")
         with col4:
             st.write(f"📝 **Estado:** {credito['estado']}")
+        with col5:
+            estado=st.checkbox('Modificar estado',
+                        ["Seleccione una opción", "pendiente", "aceptado", "liquidado", 
+                        "al dia", "En mora", "en juicio", "cancelado", "finalizado"],
+                        index=["Seleccione una opción", "pendiente", "aceptado", "liquidado",
+                            "al dia", "En mora", "en juicio", "cancelado", "finalizado"])
+            if st.button('Guardar'):
+                login.save_data(st.session_state['credito']['id'],'estado',estado)
     with st.container(border=True):
         col1,col2,col3,col4=st.columns(4)
         with col1:
