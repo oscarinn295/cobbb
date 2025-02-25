@@ -254,25 +254,45 @@ def historial(old_values, new_values):
     worksheet.append_row(row_old)
     worksheet.append_row(row_new)
 import meta_ediciones
-def cargar_clientes():
-    if "clientes" not in st.session_state:
-        st.session_state["clientes"] = load_data_vendedores(st.secrets['urls']['clientes'])
-    if "cobranzas" not in st.session_state:
-        st.session_state["cobranzas"] = load_data_vendedores(st.secrets['urls']['cobranzas'])
-    if "prestamos" not in st.session_state:
-        st.session_state["prestamos"] = load_data_vendedores(st.secrets['urls']['prestamos'])
+def cargar_clientes(forzado=False):
+    try:
+        if forzado==True:
+            st.session_state["clientes"] = load_data_vendedores(st.secrets['urls']['clientes'])
+            st.session_state["cobranzas"] = load_data_vendedores(st.secrets['urls']['cobranzas'])
+            st.session_state["prestamos"] = load_data_vendedores(st.secrets['urls']['prestamos'])
+        else:
+            if "clientes" not in st.session_state:
+                st.session_state["clientes"] = load_data_vendedores(st.secrets['urls']['clientes'])
+            if "cobranzas" not in st.session_state:
+                st.session_state["cobranzas"] = load_data_vendedores(st.secrets['urls']['cobranzas'])
+            if "prestamos" not in st.session_state:
+                st.session_state["prestamos"] = load_data_vendedores(st.secrets['urls']['prestamos'])
+    except:
+        pass
     #meta_ediciones.calcular_recargo()
 
-def cargar_reportes():
-    if "mov" not in st.session_state:
-        st.session_state["mov"] = load_data(st.secrets['urls']['flujo_caja'])
-    if 'repo_cobranzas' not in st.session_state:
-        st.session_state['repo_cobranzas']=load_data(st.secrets['urls']['repo_cobranzas'])
-    if 'comisiones' not in st.session_state:
-        st.session_state['comisiones']=load_data(st.secrets['urls']['repo_comision'])
-    if "repo_mensual" not in st.session_state:
-        st.session_state["repo_mensual"] = load_data(st.secrets['urls']['repo_mensual'])
-    if "morosos" not in st.session_state:
-        st.session_state["morosos"] = load_data(st.secrets['urls']['repo_morosos'])
-    if 'repo_ventas' not in st.session_state:
-        st.session_state['repo_ventas']=load_data(st.secrets['urls']['repo_ventas'])
+
+def cargar_reportes(forzado=False):
+    try:
+        if forzado==True:
+            st.session_state["mov"] = load_data(st.secrets['urls']['flujo_caja'])
+            st.session_state['repo_cobranzas']=load_data(st.secrets['urls']['repo_cobranzas'])
+            st.session_state['comisiones']=load_data(st.secrets['urls']['repo_comision'])
+            st.session_state["repo_mensual"] = load_data(st.secrets['urls']['repo_mensual'])
+            st.session_state["morosos"] = load_data(st.secrets['urls']['repo_morosos'])
+            st.session_state['repo_ventas']=load_data(st.secrets['urls']['repo_ventas'])       
+        else:
+            if "mov" not in st.session_state:
+                st.session_state["mov"] = load_data(st.secrets['urls']['flujo_caja'])
+            if 'repo_cobranzas' not in st.session_state:
+                st.session_state['repo_cobranzas']=load_data(st.secrets['urls']['repo_cobranzas'])
+            if 'comisiones' not in st.session_state:
+                st.session_state['comisiones']=load_data(st.secrets['urls']['repo_comision'])
+            if "repo_mensual" not in st.session_state:
+                st.session_state["repo_mensual"] = load_data(st.secrets['urls']['repo_mensual'])
+            if "morosos" not in st.session_state:
+                st.session_state["morosos"] = load_data(st.secrets['urls']['repo_morosos'])
+            if 'repo_ventas' not in st.session_state:
+                st.session_state['repo_ventas']=load_data(st.secrets['urls']['repo_ventas'])
+    except:
+        pass
