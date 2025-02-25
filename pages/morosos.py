@@ -17,7 +17,8 @@ def new(data):#añade una fila entera de datos
     login.append_data(data,idc)
 login.generarLogin()
 st.session_state['clientes']=load() 
-
+if 'pagina_actual' not in st.session_state:
+        st.session_state['pagina_actual'] = 1
 cobranzas=st.session_state['cobranzas']
 prestamos=st.session_state['prestamos']
 vendedores=st.session_state['usuarios']['usuario'].tolist()
@@ -28,26 +29,13 @@ moras=cobranzas[cobranzas['estado']=='En mora']
 cartones_morosos=prestamos[prestamos['id'].isin(moras['prestamo_id'].unique())]
 morosos=st.session_state['clientes'][st.session_state['clientes']['nombre'].isin(cartones_morosos['nombre'].unique())]
 
-def save_data(id_value, column_name, new_value, sheet_id):
-        worksheet = login.get_worksheet(sheet_id)
-        col_labels = worksheet.row_values(1)
-
-        if column_name not in col_labels:
-            return
-        
-        col_index = col_labels.index(column_name) + 1
-        id_column_values = worksheet.col_values(1)  # Se asume que la columna "ID" siempre es la primera
-        
-        if str(id_value) in id_column_values:
-            row_index = id_column_values.index(str(id_value)) + 1
-            worksheet.update_cell(row_index, col_index, new_value)
 
 # Cargar datos
 idc2 = st.secrets['ids']['cobranzas']
 url2 = st.secrets['urls']['cobranzas']
 
 def save2(id,column,data):#modifica un solo dato
-    save_data(id,column,data,idc)
+    login.save_cobb(id,column,data,idc)
 
 
 
@@ -143,7 +131,7 @@ def registrar(cobranza,idd):
         
         for campo, valor in campos:
             save2(cobranza['id'], campo, valor)
-        login.cargar_clientes()  
+        login.cargar_clientes(forzado=True)  
         st.rerun()
 
 
@@ -227,7 +215,14 @@ def display_table_morosos(cobranzas_credito):
     else:
         st.warning("No se encontraron resultados.")
 def cartones_morosos(prestamo_monton):
-    for _, row in prestamo_monton.iterrows():
+    # Configuración de paginación
+    ITEMS_POR_PAGINA = 10
+    # Paginación
+    total_paginas = (len(prestamo_monton) // ITEMS_POR_PAGINA) + (1 if len(prestamo_monton) % ITEMS_POR_PAGINA > 0 else 0)
+    inicio = (st.session_state['pagina_actual'] - 1) * ITEMS_POR_PAGINA
+    fin = inicio + ITEMS_POR_PAGINA
+    df_paginado = prestamo_monton.iloc[inicio:fin]
+    for _, row in df_paginado.iterrows():
         with st.container(border=True):
             col1,col2,col3,col4=st.columns(4)
             with col1: 
@@ -248,6 +243,27 @@ def cartones_morosos(prestamo_monton):
             cobranzas_prestamo = cobranzas[cobranzas['prestamo_id'] == row['id']]
             cobranzas_prestamo=cobranzas_prestamo[cobranzas_prestamo['estado']=='En mora']
             display_table_morosos(cobranzas_prestamo)
+        # Controles de paginación
+    with st.container(border=True):
+        col_pag1, col_pag2, col_pag3 = st.columns([1, 2, 1])
+        with col_pag1:
+            if st.session_state['pagina_actual'] > 1:
+                if st.button("⬅ Anterior"):
+                    st.session_state['pagina_actual'] -= 1
+                    st.rerun()
+        with col_pag3:
+            if st.session_state['pagina_actual'] < total_paginas:
+                if st.button("Siguiente ➡"):
+                    st.session_state['pagina_actual'] += 1
+                    st.rerun()
+    # Contador de registros y selector de cantidad por página
+    with st.container(border=True):
+        st.write(f"Se muestran de {inicio + 1} a {min(fin, len(prestamo_monton))} de {len(prestamo_monton)} resultados")
+        items_seleccionados = st.selectbox("Por página", [10, 25, 50, 100], index=[10, 25, 50, 100].index(ITEMS_POR_PAGINA),key='seleccionados')
+        if items_seleccionados != ITEMS_POR_PAGINA:
+            ITEMS_POR_PAGINA = items_seleccionados
+            st.session_state['pagina_actual'] = 1
+            st.rerun()
 for _,moroso in morosos.iterrows():
     prestamos_moroso=prestamos[prestamos['nombre']==moroso['nombre']]
     cartones_morosos(prestamos_moroso)

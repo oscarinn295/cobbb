@@ -417,10 +417,6 @@ def display_table():
                             "al dia", "En mora", "en juicio", "cancelado", "finalizado"].index(row["estado"]),
                         key=f"estado_{idx}"
                     )
-                    # Agregar cambios si el estado cambió
-                    if new_estado != row["estado"]:
-                        save(row['id'],'estado',new_estado)
-                        login.cargar_clientes()
                     if st.button("ver detalles",key=f'cliente_{idx}'):
                                 st.session_state['credito']=row
                                 st.switch_page("pages/por_credito.py")

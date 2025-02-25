@@ -123,7 +123,7 @@ def editar(cliente):
         #login.historial(st.session_state['clientes'][st.session_state['clientes']['id']==idx],'edicion_nuevo')
         for dato,col in datos:
             save(idx,col,dato)
-            login.cargar_clientes()
+            login.cargar_clientes(forzado=True)
         st.success("cambios guardados")
 
 def crear():
@@ -159,7 +159,7 @@ def crear():
                 mail
             ]
             new(nuevo_cliente)
-            login.cargar_clientes()
+            login.cargar_clientes(forzado=True)
             st.success('Cliente guardado correctamente')
             login.historial(['id','nombre','vendedor', 'scoring', 'direccion', 'fecha_nac', 'dni', 'celular', 'mail'],nuevo_cliente)
 
@@ -260,7 +260,7 @@ with col4:
 with col1:
     # Botón para reiniciar datos
     if st.button("Reiniciar datos"):
-        login.cargar_clientes()
+        login.cargar_clientes(forzado=True)
 with col2:
     if st.button('ver morosos'):
         st.switch_page('pages/morosos.py')
