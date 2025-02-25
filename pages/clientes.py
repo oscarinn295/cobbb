@@ -170,8 +170,7 @@ def display_table():
         lista.append(nombre)
     nombre_cliente = st.selectbox('Cliente',lista,index=0)
     if nombre_cliente!='seleccione un cliente':
-        st.session_state["prestamos_df"]=df[df['nombre']==nombre_cliente]
-        df=st.session_state["prestamos_df"]
+        st.session_state["clientes"]=df[df['nombre']==nombre_cliente]
     if st.session_state['user_data']['permisos'].iloc[0]=='admin':
         lista2=['seleccione un vendedor']
 
@@ -181,8 +180,8 @@ def display_table():
         vendedor=st.selectbox('vendedor',lista2,index=0)
         
         if vendedor!='seleccione un vendedor':
-            st.session_state["prestamos_df"]=df[df['vendedor']==vendedor]
-            df=st.session_state["prestamos_df"]
+            st.session_state["clientes"]=df[df['vendedor']==vendedor]
+            df=st.session_state["clientes"]
     # Configuración de paginación
     ITEMS_POR_PAGINA = 10
     # Paginación

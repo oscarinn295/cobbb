@@ -33,17 +33,19 @@ else:
     # Verificar si los valores son NaT antes de aplicar strftime
     primer = primer.strftime('%d-%m-%Y') if pd.notna(primer) else ""
     ultima = ultima.strftime('%d-%m-%Y') if pd.notna(ultima) else ""
+    credito['fecha']=credito['fecha'].strftime('%d-%m-%Y')
     with st.container(border=True):
         col1,col2,col3,col4,col5=st.columns(5)
         with col1: 
             st.markdown(f"### {credito['nombre']}: {credito['id']}")
             st.write(f"📝 **Concepto:** {credito['asociado']}")
+            st.write(f"📆 **Vencimiento:** {credito['vence']}")
         with col2:
             st.write(f"📅 **Fecha:** {credito['fecha']}")
-            st.write(f"💰 **Capital:** {credito['capital']}")
+            st.write(f"💰 **Capital:** ${credito['capital']:,.2f}")
         with col3:
             st.write(f"📌 **Cantidad de cuotas:** {credito['cantidad']}")
-            st.write(f"📆 **Vencimiento:** {credito['vence']}")
+            st.write(f"💰 **Monto por cuota:** ${credito['monto']:,.2f}")
         with col4:
             st.write(f"📝 **Estado:** {credito['estado']}")
         with col5:
