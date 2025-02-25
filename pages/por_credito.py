@@ -36,7 +36,7 @@ else:
     with st.container(border=True):
         col1,col2,col3,col4,col5=st.columns(5)
         with col1: 
-            st.markdown(f"### Préstamo ID: {credito['id']}")
+            st.markdown(f"### {credito['nombre']}: {credito['id']}")
             st.write(f"📝 **Concepto:** {credito['asociado']}")
         with col2:
             st.write(f"📅 **Fecha:** {credito['fecha']}")

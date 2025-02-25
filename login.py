@@ -371,7 +371,6 @@ def display_cobranzas(cobranzas_df):
             else st.number_input(
                 "Monto",
                 min_value=0.0,
-                max_value=cobranza['monto_recalculado_mora'],
                 value=0.0,
                 step=1000.0,
                 key=f"monto_{cobranza['id']}"
@@ -379,7 +378,6 @@ def display_cobranzas(cobranzas_df):
             if pago == 'Otro monto'
             else 0.0
         )
-
         registro = 'Pago total' if monto == cobranza['monto_recalculado_mora'] else 'Pago parcial'
 
         medio_pago = st.selectbox(
