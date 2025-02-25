@@ -248,6 +248,6 @@ def cartones_morosos(prestamo_monton):
             cobranzas_prestamo = cobranzas[cobranzas['prestamo_id'] == row['id']]
             cobranzas_prestamo=cobranzas_prestamo[cobranzas_prestamo['estado']=='En mora']
             display_table_morosos(cobranzas_prestamo)
-#for _,moroso in morosos.iterrows():
-#    prestamos_moroso=prestamos[prestamos['nombre']==moroso['nombre']]
-#    cartones_morosos(prestamos_moroso)
+for _,moroso in morosos.iterrows():
+    prestamos_moroso=prestamos[prestamos['nombre']==moroso['nombre']]
+    cartones_morosos(prestamos_moroso)
