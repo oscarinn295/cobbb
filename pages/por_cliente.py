@@ -107,7 +107,7 @@ else:
         with col4:
             if st.button('Recargar datos'):
                 login.cargar_clientes(forzado=True)
-        for _, row in prestamos_cliente.iterrows():
+        for idx, row in prestamos_cliente.iterrows():
             with st.container(border=True):
                 col1,col2,col3,col4=st.columns(4)
                 with col1: 
@@ -131,9 +131,9 @@ else:
                 with col1:
                     st.write('Filtros adicionales: ')
                 with col2:
-                    check1= st.checkbox('En mora')
+                    check1= st.checkbox('En mora',key=f"check1{idx}")
                 with col3:
-                    check2=st.checkbox('Pendientes de pago')
+                    check2=st.checkbox('Pendientes de pago',key=f"check2{idx}")
                 if check1 and check2:
                     df=df[df['estado']=='En mora' or df['estado']=='Pendientes de pago' ]
                 elif check1:
