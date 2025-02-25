@@ -4,22 +4,21 @@ import pandas as pd
 import datetime as dt
 import time
 login.generarLogin()
-col1,col2,col3,col4,col5=st.columns(5)
-with col1:
-    if st.button("Volver"):
-        st.session_state['cliente'] = None
-        st.switch_page("pages/clientes.py")
-with col5:
-    if st.button("Reiniciar datos"):
-            login.cargar_clientes(forzado=True)
-if 'usuario' not in st.session_state:
-    st.switch_page('inicio.py')
-    
 
 # Verificar si 'cliente' está en session_state
 if 'cliente' not in st.session_state :
     st.error("No se ha seleccionado ningún cliente.")
 else:
+    col1,col2,col3,col4,col5=st.columns(5)
+    with col1:
+        if st.button("Volver"):
+            st.session_state['cliente'] = None
+            st.switch_page("pages/clientes.py")
+    with col5:
+        if st.button("Reiniciar datos"):
+                login.cargar_clientes(forzado=True)
+    if 'usuario' not in st.session_state:
+        st.switch_page('inicio.py')
     st.title(f"{st.session_state['cliente']['nombre']}")
     cliente = st.session_state['cliente']
     vendedores = st.session_state['usuarios']['usuario'].tolist()
@@ -114,6 +113,7 @@ else:
         with col4:
             if st.button('Recargar datos'):
                 login.cargar_clientes(forzado=True)
+        st.title(f'Creditos vigentes: {prestamos_cliente.shape[0]}')
         for idx, row in prestamos_cliente.iterrows():
             with st.container(border=True):
                 col1,col2,col3,col4,col5=st.columns(5)
