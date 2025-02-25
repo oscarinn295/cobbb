@@ -49,9 +49,7 @@ else:
         with col5:
             estado=st.checkbox('Modificar estado',
                         ["Seleccione una opción", "pendiente", "aceptado", "liquidado", 
-                        "al dia", "En mora", "en juicio", "cancelado", "finalizado"],
-                        index=["Seleccione una opción", "pendiente", "aceptado", "liquidado",
-                            "al dia", "En mora", "en juicio", "cancelado", "finalizado"])
+                        "al dia", "En mora", "en juicio", "cancelado", "finalizado"])
             if st.button('Guardar'):
                 login.save_data(st.session_state['credito']['id'],'estado',estado)
     with st.container(border=True):
