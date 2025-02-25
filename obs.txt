@@ -9,20 +9,13 @@ quieren ver cuanto juntaron de amortización e intereses por mes
 tambien quiere una planilla de gastos
 
 
-fijarse con lo de registrar las cobranzas, dejar un saldo a favor si se paga de mas y transferirlo, 
-
-añadir el estado de irregular a las cobranzas y desarrollar un nuevo sistema para morosos
 
 hacer automatico el recargo por mora
 
 poder modificar a mano los vencimientos de todas las cobranzas
 y poder modificar desde cuando se quiere empezar a cobrar
 
-recordar que la función de save tiene un problema con los indexes,
-que hay una que busca de acuerdo a la coincidencia en la columna id,
-y en otros casos busca en el orden de aparicion en la hoja
 
-no aparece el nombre del cliente cuando te metes a
 meter un try en todas las veces que se cargue la base o se le hagan modificaciones para evitar tener que salir de la pagina cada que parametros
 particularmente pasa con el df de usuarios
 funcion para exportar a otro excel los finalizados
