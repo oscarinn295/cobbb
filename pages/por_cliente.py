@@ -131,10 +131,10 @@ else:
                     st.write(f"📝 **Estado:** {row['estado']}")
                     estado=st.selectbox('Modificar estado',
                                 ["Seleccione una opción", "pendiente", "aceptado", "liquidado", 
-                                "al dia", "En mora", "en juicio", "cancelado", "finalizado"])
+                                "al dia", "En mora", "en juicio", "cancelado", "finalizado"],key=f'estado{idx}')
                     if st.button('Guardar'):
                         login.save_data(st.session_state['credito']['id'],'estado',estado)
-                        
+
                 with col5:
                     if st.button('ver detalles',key=f'detalles_{row['id']}'):
                         st.session_state['credito']=row
